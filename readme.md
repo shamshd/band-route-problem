@@ -36,6 +36,7 @@ Once I have the allDistances matrix, then I can apply a rudimentary branch and b
 
 There is a bug in function calcReducedDistancesMatrix, but I have run out of time to fix this (spent 3 to 4 hours on this challenge)
 
+
 function calculateAllDistances(points) {
     // use pythagoras's theorem z = sqroot(x^2 + y^2) to calculate
     // the distance between two points
