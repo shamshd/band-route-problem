@@ -28,3 +28,122 @@ If you have questions on the challenge, please contact Jared Sartin: jared@leftf
 # Candidate Notes:
 
 ### Fill in comments, external tool usage, and time tracking
+
+This is a classic TSP.
+I am attempting to use a branch and bound algorithmic approch, i.e. for n data points create n-1 branches, calulate minimum route for a top level branch and travel down the tree.
+First I have to calculate a allDistances matrix from the raw dataset of (x,y) coordinates, using pythagoras's theorem x^2 + y^2 = z^2
+Once I have the allDistances matrix, then I can apply a rudimentary branch and bound algorithm to it to solve and display the minimum route
+
+There is a bug in function calcReducedDistancesMatrix, but I have run out of time to fix this (spent 3 to 4 hours on this challenge)
+
+function calculateAllDistances(points) {
+    // use pythagoras's theorem z = sqroot(x^2 + y^2) to calculate
+    // the distance between two points
+    // return a matrix of all distances between all points
+
+    let x1=0;
+    let x2=0;
+    let y1=0;
+    let y2=0;
+    let distances = [];
+
+    for(let i=0; i<points.length; i++){
+        let colArr = [];
+        for(let j=0; j<points.length; j++) {
+            if(i==j) {
+                colArr[j] = Infinity;
+            }
+            else {
+                try {
+                    x1 = points[i].x;
+                    y1 = points[i].y;
+                    x2 = points[j].x;
+                    y2 = points[j].y;
+                   colArr[j] =  Math.sqrt(Math.pow((x1 - x2),2) + Math.pow((y1 - y2),2));
+                }
+                catch(err) {
+                    console.log('error= ' + err.message); 
+                }
+            }     
+        }
+        distances[i] = colArr;   
+    }
+    return distances;
+}
+
+const calcTotDistanceLowerBoundAndRoute = (distancesMatrix) => {
+    // Find lower bound for total distance of route by adding the row minimums
+    // Also store the route
+    let minForRow = [];
+    let lowerBound = {
+        distance : 0,
+        route: {}
+    };
+    for(let j=0;j<distancesMatrix.length; j++){
+        for(let i=0; i<distancesMatrix.length; i++) {
+            minForRow.push(distancesMatrix[i][j]);
+            lowerBound.route += i + " -> " + j +", ";
+        }  
+        lowerBound.distance += Math.min(...minForRow);  
+        minForRow = [];
+    }
+    return lowerBound;
+}
+
+// let lowerBound = calcTotDistanceLowerBoundAndRoute(calculateAllDistances(points4));
+// console.log('lowerBound= '+ lowerBound);
+
+const calcReducedDistancesMatrix = (distancesMatrix, row, col) => {
+    let reducedMatrix =[];
+    let colArray = [];
+
+    for(let i=0; i<distancesMatrix.length; i++) {
+        for(let j=0; j<distancesMatrix.length; j++) {
+            if(!(i == row || j == col)){
+                colArray.push(distancesMatrix[i][j]); 
+                reducedMatrix.push(colArray);
+            }
+        }
+    }
+    return reducedMatrix;
+}
+
+const displayOptimalRoute = (optimalRoute) => {
+    console.log(optimalRoute);
+}
+
+const calcBranches = (distancesMatrix) => {
+    // make n-1 branches
+    // For every i,j that is fixed, leave out the ith row and jth column , take the 
+    // reduced matrix and find out the sum of the row minima and then add the fixed value to
+    // get this lower bound value
+    let reducedDistancesMatrix = [];
+    let lowerBound = 0;
+    let optimalRoute = {
+        distance: Infinity,
+        route: {}
+    };
+
+    for(let i=0; i< distancesMatrix.length; i++) {
+        for(let j=0; j< distancesMatrix.length; j++) {
+            if(i != j) {
+                // since don't want sub routes or partial routes
+                reducedDistancesMatrix = calcReducedDistancesMatrix(distancesMatrix, i,j);
+                lowerBound = calcTotDistanceLowerBoundAndRoute(reducedDistancesMatrix);
+               
+                // add fixed distance to lowerBound of reduced distancesMatrix
+                if(optimalRoute.distance > lowerBound.distance + distancesMatrix[i][j]) {
+                    optimalRoute = lowerBound;
+                    lowerBound = [];
+                }
+            }
+        }
+    }
+
+    displayOptimalRoute(optimalRoute);
+}
+
+calcBranches(calculateAllDistances(points4));
+
+
+
